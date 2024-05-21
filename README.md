@@ -42,7 +42,7 @@ pip install pandas numpy scikit-learn matplotlib seaborn
 
 ## Project Structure
 
-- `Checkpoint1.ipynb`: Jupyter notebook containing the code for the project.
+- `final_hcc.ipynb`: Jupyter notebook containing the code for the project.
 - `hcc_dataset.csv`: Dataset used for the project.
 
 ## Usage
