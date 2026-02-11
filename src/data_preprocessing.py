@@ -175,7 +175,8 @@ def preprocess_pipeline(
     missing_strategy: str = 'median',
     test_size: float = 0.2,
     random_state: int = 42,
-    use_feature_engineering: bool = False
+    use_feature_engineering: bool = False,
+    use_smote: bool = False
 ) -> Dict:
     """
     Complete preprocessing pipeline for HCC dataset.
@@ -186,6 +187,7 @@ def preprocess_pipeline(
         test_size: Proportion of data to use for testing
         random_state: Random seed for reproducibility
         use_feature_engineering: Whether to apply feature engineering
+        use_smote: Whether to apply SMOTE for class imbalance handling
         
     Returns:
         Dictionary containing processed data and metadata
@@ -229,17 +231,26 @@ def preprocess_pipeline(
     # Scale features
     X_train_scaled, X_test_scaled, scaler = scale_features(X_train, X_test)
     
+    # Apply SMOTE (New Step!)
+    if use_smote:
+        from imblearn.over_sampling import SMOTE
+        print(f"⚖️  Applying SMOTE to training data (original: {dict(pd.Series(y_train).value_counts())})...")
+        smote = SMOTE(random_state=random_state)
+        X_train_scaled, y_train = smote.fit_resample(X_train_scaled, y_train)
+        print(f"✓ SMOTE applied (new: {dict(pd.Series(y_train).value_counts())})")
+    
     # Metadata
     metadata = {
         'n_samples': len(df),
         'n_features': len(feature_names),
-        'n_train': len(X_train),
+        'n_train': len(X_train_scaled), # Update n_train since SMOTE changes it
         'n_test': len(X_test),
         'class_distribution': y.value_counts().to_dict(),
         'missing_strategy': missing_strategy,
         'test_size': test_size,
         'random_state': random_state,
-        'feature_engineering': use_feature_engineering
+        'feature_engineering': use_feature_engineering,
+        'smote': use_smote
     }
     
     print("=" * 60)

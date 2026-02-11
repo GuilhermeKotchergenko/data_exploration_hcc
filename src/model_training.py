@@ -17,6 +17,7 @@ def train_random_forest(
     X_train: np.ndarray,
     y_train: np.ndarray,
     hyperparameter_tuning: bool = False,
+    class_weight: Optional[str] = None,
     random_state: int = 42
 ) -> RandomForestClassifier:
     """
@@ -26,6 +27,7 @@ def train_random_forest(
         X_train: Training features
         y_train: Training labels
         hyperparameter_tuning: Whether to perform grid search CV
+        class_weight: Weights associated with classes (e.g., 'balanced')
         random_state: Random seed for reproducibility
         
     Returns:
@@ -38,7 +40,8 @@ def train_random_forest(
             'n_estimators': [50, 100, 200],
             'max_depth': [None, 10, 20, 30],
             'min_samples_split': [2, 5, 10],
-            'min_samples_leaf': [1, 2, 4]
+            'min_samples_leaf': [1, 2, 4],
+            'class_weight': [class_weight] # Pass through to grid search
         }
         rf = RandomForestClassifier(random_state=random_state)
         grid_search = GridSearchCV(
@@ -53,10 +56,11 @@ def train_random_forest(
             n_estimators=100,
             max_depth=20,
             min_samples_split=5,
+            class_weight=class_weight,
             random_state=random_state
         )
         rf.fit(X_train, y_train)
-        print(f"✓ Random Forest trained with default parameters")
+        print(f"✓ Random Forest trained with default parameters (class_weight={class_weight})")
         return rf
 
 
@@ -64,6 +68,7 @@ def train_decision_tree(
     X_train: np.ndarray,
     y_train: np.ndarray,
     hyperparameter_tuning: bool = False,
+    class_weight: Optional[str] = None,
     random_state: int = 42
 ) -> DecisionTreeClassifier:
     """
@@ -73,6 +78,7 @@ def train_decision_tree(
         X_train: Training features
         y_train: Training labels
         hyperparameter_tuning: Whether to perform grid search CV
+        class_weight: Weights associated with classes (e.g., 'balanced')
         random_state: Random seed for reproducibility
         
     Returns:
@@ -85,7 +91,8 @@ def train_decision_tree(
             'max_depth': [None, 5, 10, 15, 20],
             'min_samples_split': [2, 5, 10, 20],
             'min_samples_leaf': [1, 2, 4, 8],
-            'criterion': ['gini', 'entropy']
+            'criterion': ['gini', 'entropy'],
+            'class_weight': [class_weight] # Pass through
         }
         dt = DecisionTreeClassifier(random_state=random_state)
         grid_search = GridSearchCV(
@@ -99,10 +106,11 @@ def train_decision_tree(
         dt = DecisionTreeClassifier(
             max_depth=10,
             min_samples_split=5,
+            class_weight=class_weight,
             random_state=random_state
         )
         dt.fit(X_train, y_train)
-        print(f"✓ Decision Tree trained with default parameters")
+        print(f"✓ Decision Tree trained with default parameters (class_weight={class_weight})")
         return dt
 
 
@@ -149,6 +157,7 @@ def train_all_models(
     X_train: np.ndarray,
     y_train: np.ndarray,
     hyperparameter_tuning: bool = False,
+    class_weight: Optional[str] = None,
     random_state: int = 42
 ) -> Dict[str, Any]:
     """
@@ -158,6 +167,7 @@ def train_all_models(
         X_train: Training features
         y_train: Training labels
         hyperparameter_tuning: Whether to perform hyperparameter tuning
+        class_weight: Weights associated with classes (e.g., 'balanced')
         random_state: Random seed for reproducibility
         
     Returns:
@@ -169,12 +179,12 @@ def train_all_models(
     
     models = {
         'Random Forest': train_random_forest(
-            X_train, y_train, hyperparameter_tuning, random_state
+            X_train, y_train, hyperparameter_tuning, class_weight, random_state
         ),
         'Decision Tree': train_decision_tree(
-            X_train, y_train, hyperparameter_tuning, random_state
+            X_train, y_train, hyperparameter_tuning, class_weight, random_state
         ),
-        'KNN': train_knn(X_train, y_train, hyperparameter_tuning)
+        'KNN': train_knn(X_train, y_train, hyperparameter_tuning) # KNN doesn't support class_weight in standard implementation
     }
     
     print("\n" + "=" * 60)
