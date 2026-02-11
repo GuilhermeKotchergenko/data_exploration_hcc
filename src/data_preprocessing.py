@@ -103,7 +103,7 @@ def encode_categorical_features(
     df = df.copy()
     encoders = {}
     
-    categorical_cols = df.select_dtypes(include=['object']).columns
+    categorical_cols = df.select_dtypes(include=['object', 'category']).columns
     categorical_cols = [col for col in categorical_cols if col != target_column]
     
     for col in categorical_cols:
@@ -174,7 +174,8 @@ def preprocess_pipeline(
     filepath: str,
     missing_strategy: str = 'median',
     test_size: float = 0.2,
-    random_state: int = 42
+    random_state: int = 42,
+    use_feature_engineering: bool = False
 ) -> Dict:
     """
     Complete preprocessing pipeline for HCC dataset.
@@ -184,18 +185,10 @@ def preprocess_pipeline(
         missing_strategy: Strategy for handling missing values
         test_size: Proportion of data to use for testing
         random_state: Random seed for reproducibility
+        use_feature_engineering: Whether to apply feature engineering
         
     Returns:
-        Dictionary containing:
-            - 'X_train': Training features (scaled)
-            - 'X_test': Test features (scaled)
-            - 'y_train': Training labels
-            - 'y_test': Test labels
-            - 'feature_names': List of feature names
-            - 'encoders': Dictionary of label encoders
-            - 'target_encoder': Label encoder for target variable
-            - 'scaler': StandardScaler object
-            - 'metadata': Additional metadata
+        Dictionary containing processed data and metadata
     """
     from sklearn.model_selection import train_test_split
     
@@ -208,6 +201,11 @@ def preprocess_pipeline(
     
     # Handle missing values
     df = handle_missing_values(df, strategy=missing_strategy)
+    
+    # Feature Engineering (New Step!)
+    if use_feature_engineering:
+        from feature_engineering import apply_feature_engineering
+        df = apply_feature_engineering(df)
     
     # Encode categorical features
     df, encoders = encode_categorical_features(df)
@@ -240,7 +238,8 @@ def preprocess_pipeline(
         'class_distribution': y.value_counts().to_dict(),
         'missing_strategy': missing_strategy,
         'test_size': test_size,
-        'random_state': random_state
+        'random_state': random_state,
+        'feature_engineering': use_feature_engineering
     }
     
     print("=" * 60)
