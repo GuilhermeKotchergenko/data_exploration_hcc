@@ -1,10 +1,6 @@
 # Hepatocellular Carcinoma (HCC) Survival Prediction 🏥
 
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3%2B-orange.svg)](https://scikit-learn.org/)
-
-A machine learning project for predicting survival outcomes in patients with Hepatocellular Carcinoma (HCC) using clinical and demographic data. This project demonstrates professional data science practices including modular code architecture, comprehensive testing, and reproducible workflows.
+A ML project for predicting survival outcomes in patients with Hepatocellular Carcinoma (HCC) using clinical and demographic data. This project demonstrates professional data science practices including modular code architecture, comprehensive testing, and reproducible workflows.
 
 ## 📋 Table of Contents
 - [Overview](#overview)
@@ -21,22 +17,21 @@ A machine learning project for predicting survival outcomes in patients with Hep
 
 ## 🎯 Overview
 
-Hepatocellular Carcinoma (HCC) is a common and aggressive type of liver cancer, often diagnosed in later stages due to subtle early symptoms. This project leverages machine learning techniques to predict the survival outcomes (Dies or Lives) of patients diagnosed with HCC.
+HCC is a common and aggressive type of liver cancer, often diagnosed in later stages due to subtle early symptoms. This project leverages machine learning techniques to predict the survival outcomes (Alive or Dead) of patients diagnosed with HCC.
 
 **Key Objectives:**
 - 📊 Analyze medical and demographic data from HCC patients
-- 🤖 Build and compare multiple machine learning models
+- 🤖 Build and compare ML models
 - 📈 Identify key factors influencing patient survival
 - 🎯 Provide accurate prognostic predictions
 
 ## ✨ Features
 
 - **Modular Code Architecture**: Clean, reusable Python modules for preprocessing, training, and evaluation
-- **Multiple ML Models**: Random Forest, Decision Tree, and K-Nearest Neighbors classifiers
+- **Multiple ML Models**: Random Forest, Decision Tree, and K-NN classifiers
 - **Comprehensive Evaluation**: Confusion matrices, ROC curves, classification reports, and model comparison
 - **Feature Importance Analysis**: Identify the most predictive clinical features
 - **Reproducible Workflow**: Consistent random seeds and documented preprocessing steps
-- **Professional Documentation**: Type hints, docstrings, and detailed README
 
 ## 📊 Dataset
 
@@ -45,7 +40,7 @@ The dataset (`hcc_dataset.csv`) contains real clinical data from **165 patients*
 **Dataset Characteristics:**
 - **Samples**: 165 patients
 - **Features**: 49 clinical and demographic variables
-- **Target**: Binary classification (Dies / Lives)
+- **Target**: Binary classification (Alive or Dead)
 - **Source**: CHUC, Portugal
 
 **Key Features Include:**
@@ -54,13 +49,12 @@ The dataset (`hcc_dataset.csv`) contains real clinical data from **165 patients*
 - Laboratory test results (AFP, bilirubin, albumin, etc.)
 - Tumor characteristics
 
-> **Note**: This dataset contains anonymized patient information. Please handle responsibly.
+> **Note**: This dataset contains anonymized patient information.
 
 ## 🚀 Installation
 
 ### Prerequisites
 - Python 3.9 or higher
-- pip package manager
 
 ### Step-by-Step Installation
 
@@ -88,39 +82,7 @@ pip install -r requirements.txt
 
 ## ⚡ Quick Start
 
-### Option 1: Using the Modular Code
-
-```python
-# Import modules
-from src.data_preprocessing import preprocess_pipeline
-from src.model_training import train_all_models
-from src.evaluation import evaluate_all_models
-
-# Preprocess data
-data = preprocess_pipeline(
-    filepath='data/raw/hcc_dataset.csv',
-    missing_strategy='median',
-    test_size=0.2,
-    random_state=42
-)
-
-# Train models
-models = train_all_models(
-    data['X_train'],
-    data['y_train'],
-    random_state=42
-)
-
-# Evaluate models
-results = evaluate_all_models(
-    models,
-    data['X_test'],
-    data['y_test'],
-    save_dir='results'
-)
-```
-
-### Option 2: Using Jupyter Notebooks
+### Using Jupyter Notebooks
 
 ```bash
 # Start Jupyter
@@ -162,83 +124,51 @@ data_exploration_hcc/
 └── README.md                   # This file
 ```
 
-## 💻 Usage
+## 📈 Results and Analysis
 
-### Data Preprocessing
+### 1. Impact of Feature Engineering
 
-```python
-from src.data_preprocessing import preprocess_pipeline
+We implemented:
+- **Interaction Terms**: e.g., `Age * AFP` (capturing combined risk factors)
+- **Log Transformations**: normalizing skewed distributions like `AFP`, `Creatinine`, `Ferritin`
+- **Binning**: categorizing continuous variables like `Age` into risk groups
 
-# Run complete preprocessing pipeline
-data = preprocess_pipeline(
-    filepath='data/raw/hcc_dataset.csv',
-    missing_strategy='median',  # or 'mean', 'mode', 'drop'
-    test_size=0.2,
-    random_state=42
-)
-```
+**Performance Comparison (F1-Score):**
 
-### Model Training
+| Model | Baseline F1 | Enhanced F1 | Improvement |
+|-------|-------------|-------------|-------------|
+| **Random Forest** | 0.5941 | **0.8149** | **+22.08%** |
+| K-Nearest Neighbors | 0.6455 | 0.6973 | +5.18% |
+| Decision Tree | **0.7599** | 0.6398 | -12.01% |
 
-```python
-from src.model_training import train_random_forest, train_decision_tree, train_knn
+> **Key Takeaway**: Feature engineering was highly successful for the Random Forest model, transforming it from the worst-performing baseline model to the best-performing enhanced model.
 
-# Train individual models
-rf_model = train_random_forest(X_train, y_train, hyperparameter_tuning=True)
-dt_model = train_decision_tree(X_train, y_train)
-knn_model = train_knn(X_train, y_train)
+### 2. Deep Dive: Model Behavior Analysis
 
-# Or train all models at once
-from src.model_training import train_all_models
-models = train_all_models(X_train, y_train, hyperparameter_tuning=False)
-```
+**Why Random Forest Improved (+22%):**
+- **Ensemble Power**: Random Forest aggregates predictions from many trees, allowing it to leverage the strong signals from engineered features (like interaction terms) while averaging out the noise.
+- **Handling Complexity**: It effectively captured non-linear relationships introduced by log transforms and interactions without overfitting.
 
-### Model Evaluation
+**Why Decision Tree Worsened (-12%):**
+- **Overfitting**: Single decision trees are prone to overfitting. The addition of many new correlated features (e.g., predictors + their log versions) likely caused the tree to split on noise or redundant information.
+- **Greedy Splitting**: The tree might have prioritized a new feature that worked well for a specific training subset but failed to generalize, unlike the robust consensus mechanism of the Random Forest.
 
-```python
-from src.evaluation import evaluate_model, plot_confusion_matrix, plot_roc_curve
+### 3. Top Predictive Features
 
-# Evaluate a single model
-metrics = evaluate_model(model, X_test, y_test, model_name="Random Forest")
+The analysis identified key biological drivers of survival prediction. The top features for the best-performing Random Forest model were primarily **engineered features**, validating our approach:
 
-# Plot confusion matrix
-plot_confusion_matrix(model, X_test, y_test, model_name="Random Forest")
-
-# Plot ROC curve
-plot_roc_curve(model, X_test, y_test, model_name="Random Forest")
-
-# Compare all models
-from src.evaluation import evaluate_all_models
-results_df = evaluate_all_models(models, X_test, y_test, save_dir='results')
-```
-
-## 📈 Results
-
-Our models achieve strong performance in predicting HCC patient survival outcomes:
-
-### Model Performance Comparison
-
-| Model | Accuracy | Precision | Recall | F1-Score | ROC AUC |
-|-------|----------|-----------|--------|----------|---------|
-| **Random Forest** | **0.85** | **0.84** | **0.85** | **0.84** | **0.89** |
-| Decision Tree | 0.78 | 0.77 | 0.78 | 0.77 | 0.81 |
-| K-Nearest Neighbors | 0.72 | 0.71 | 0.72 | 0.71 | 0.75 |
-
-> **Note**: Results may vary slightly depending on the train-test split and hyperparameter settings.
-
-### Key Findings
-
-- 🏆 **Random Forest** achieves the best overall performance across all metrics
-- 📊 **Feature Importance**: AFP (Alpha-fetoprotein), age, and bilirubin levels are among the most predictive features
-- ⚖️ **Class Balance**: The dataset shows class imbalance, which is handled through stratified splitting
+1.  **Age_AFP_Interaction**: Combined effect of patient age and Alpha-fetoprotein levels.
+2.  **Log_AFP**: Log-transformed Alpha-fetoprotein (handling derived skewness).
+3.  **AFP_Level**: Categorical risk bucket for AFP.
+4.  **Age_Group**: Categorical risk bucket for Age.
+5.  **Log_Creatinine**: Log-transformed kidney function metric.
 
 ### Visualizations
 
 The project generates comprehensive visualizations including:
 - Confusion matrices for each model
 - ROC curves with AUC scores
-- Model performance comparison charts
-- Feature importance plots
+- Feature importance plots (highlighting the dominance of engineered features)
 
 All visualizations are saved to `results/figures/` when running the evaluation pipeline.
 
